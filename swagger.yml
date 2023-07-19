@@ -6,7 +6,6 @@ info:
 
 schemes:
     - http
-    - https
 
 basePath: /v1
 

@@ -41,6 +41,8 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 
 	InitDB("../userDB.db")
 
+	api.UsersCreateUserHandler = users.CreateUserHandlerFunc(createUser)
+
 	if api.UsersCreateUserHandler == nil {
 		api.UsersCreateUserHandler = users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
 			return middleware.NotImplemented("operation users.CreateUser has not yet been implemented")
@@ -72,6 +74,20 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.ServerShutdown = func() {}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+}
+
+func createUser(params users.CreateUserParams) middleware.Responder {
+	// Extract the user data from params
+	user := params.User
+
+	_, err := DB.Exec("INSERT INTO users (name, email) VALUES (?, ?)", user.Name, user.Email)
+	if err != nil {
+		// Handle the error and return an appropriate response
+		return users.NewCreateUserBadRequest()
+	}
+
+	// Return a success response
+	return users.NewCreateUserCreated()
 }
 
 // The TLS configuration before HTTPS server starts.
