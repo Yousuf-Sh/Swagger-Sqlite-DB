@@ -12,6 +12,7 @@ import (
 
 	"Swagger-Sqlite-DB/restapi/operations"
 	"Swagger-Sqlite-DB/restapi/operations/users"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 //go:generate swagger generate server --target ../../Swagger-Sqlite-DB --name UserAPI --spec ../swagger.yml --principal interface{}
@@ -37,6 +38,8 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.JSONConsumer = runtime.JSONConsumer()
 
 	api.JSONProducer = runtime.JSONProducer()
+
+	InitDB("../userDB.db")
 
 	if api.UsersCreateUserHandler == nil {
 		api.UsersCreateUserHandler = users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
