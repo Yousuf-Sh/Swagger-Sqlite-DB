@@ -25,8 +25,7 @@ func init() {
     "application/json"
   ],
   "schemes": [
-    "http",
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "info": {
@@ -143,6 +142,9 @@ func init() {
           },
           "404": {
             "description": "Not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       },
@@ -202,8 +204,7 @@ func init() {
     "application/json"
   ],
   "schemes": [
-    "http",
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "info": {
@@ -320,6 +321,9 @@ func init() {
           },
           "404": {
             "description": "Not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       },

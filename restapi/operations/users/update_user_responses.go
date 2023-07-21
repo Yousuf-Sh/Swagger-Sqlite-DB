@@ -85,3 +85,28 @@ func (o *UpdateUserNotFound) WriteResponse(rw http.ResponseWriter, producer runt
 
 	rw.WriteHeader(404)
 }
+
+// UpdateUserInternalServerErrorCode is the HTTP code returned for type UpdateUserInternalServerError
+const UpdateUserInternalServerErrorCode int = 500
+
+/*
+UpdateUserInternalServerError Internal server error
+
+swagger:response updateUserInternalServerError
+*/
+type UpdateUserInternalServerError struct {
+}
+
+// NewUpdateUserInternalServerError creates UpdateUserInternalServerError with default headers values
+func NewUpdateUserInternalServerError() *UpdateUserInternalServerError {
+
+	return &UpdateUserInternalServerError{}
+}
+
+// WriteResponse to the client
+func (o *UpdateUserInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(500)
+}
