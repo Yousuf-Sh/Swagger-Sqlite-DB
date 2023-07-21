@@ -4,6 +4,7 @@ package restapi
 
 import (
 	"crypto/tls"
+	"log"
 	"net/http"
 
 	"github.com/go-openapi/errors"
@@ -41,6 +42,8 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 
 	InitDB("../userDB.db")
 
+	api.UsersUpdateUserHandler = users.UpdateUserHandlerFunc(updateUser)
+
 	if api.UsersCreateUserHandler == nil {
 		api.UsersCreateUserHandler = users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
 			return middleware.NotImplemented("operation users.CreateUser has not yet been implemented")
@@ -72,6 +75,21 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.ServerShutdown = func() {}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+}
+
+func updateUser(params users.UpdateUserParams) middleware.Responder {
+	// Extract the user data from params
+	userID := params.ID
+	user := params.User
+
+	_, err := DB.Exec("UPDATE users SET username = ?, email = ? WHERE id = ?", user.Name, user.Email, userID)
+	if err != nil {
+		log.Printf("Error when updating user :%v", err)
+		return users.NewUpdateUserBadRequest()
+	} else {
+		log.Printf("Updated Correctly")
+	}
+	return users.NewUpdateUserOK()
 }
 
 // The TLS configuration before HTTPS server starts.
