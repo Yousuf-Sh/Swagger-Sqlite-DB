@@ -40,6 +40,7 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.JSONProducer = runtime.JSONProducer()
 
 	InitDB("../userDB.db")
+	api.UsersDeleteUserHandler = users.DeleteUserHandlerFunc(deleteUser)
 
 	if api.UsersCreateUserHandler == nil {
 		api.UsersCreateUserHandler = users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
@@ -72,6 +73,25 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.ServerShutdown = func() {}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+}
+
+func deleteUser(params users.DeleteUserParams) middleware.Responder {
+	// Extract the user ID from params
+	userID := params.ID
+
+	// Implement logic to delete the user from the database by ID
+	// You can use the global DB variable to interact with the database
+
+	// Example: Delete the user from the "users" table by ID
+	_, err := DB.Exec("DELETE FROM users WHERE id = ?", userID)
+	if err != nil {
+		// Handle the error and return an appropriate response
+		return users.NewDeleteUserNotFound()
+	}
+
+	// Return a success response
+	return users.
+}
 }
 
 // The TLS configuration before HTTPS server starts.

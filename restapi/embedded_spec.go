@@ -162,6 +162,9 @@ func init() {
           }
         ],
         "responses": {
+          "200": {
+            "description": "Deleted Successfully"
+          },
           "204": {
             "description": "No content"
           },
@@ -339,6 +342,9 @@ func init() {
           }
         ],
         "responses": {
+          "200": {
+            "description": "Deleted Successfully"
+          },
           "204": {
             "description": "No content"
           },
