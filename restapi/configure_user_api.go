@@ -80,7 +80,7 @@ func createUser(params users.CreateUserParams) middleware.Responder {
 	// Extract the user data from params
 	user := params.User
 
-	_, err := DB.Exec("INSERT INTO users (name, email) VALUES (?, ?)", user.Name, user.Email)
+	_, err := DB.Exec("INSERT INTO users (id,username,email) VALUES (?, ?, ?)", user.ID, user.Name, user.Email)
 	if err != nil {
 		// Handle the error and return an appropriate response
 		return users.NewCreateUserBadRequest()
