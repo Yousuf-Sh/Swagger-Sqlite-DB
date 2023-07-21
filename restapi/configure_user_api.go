@@ -95,7 +95,7 @@ func deleteUser(params users.DeleteUserParams) middleware.Responder {
 	// You can use the global DB variable to interact with the database
 
 	// Example: Delete the user from the "users" table by ID
-	_, err := DB.Exec("DELETE FROM users WHERE id = ?", userID)
+	_, err := DB.Exec("DELETE FROM usersF WHERE id = ?", userID)
 	if err != nil {
 		logger.Printf("Error while deleting user from the database: %v", err) // Handle the error and return an appropriate response
 		return users.NewDeleteUserNotFound()
