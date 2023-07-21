@@ -1,0 +1,4 @@
+2023/07/21 17:42:08 configure_user_api.go:97: Error inserting user into the database: Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub
+2023/07/21 18:01:27 configure_user_api.go:97: Error inserting user into the database: no such table: users
+2023/07/21 18:11:30 configure_user_api.go:97: Error inserting user into the database: no such table: users
+2023/07/21 18:41:56 configure_user_api.go:109: Error inserting user into the database: UNIQUE constraint failed: usersF.id

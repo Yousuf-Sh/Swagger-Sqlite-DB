@@ -46,6 +46,8 @@ paths:
                     description: Created
                 "400":
                     description: Bad request
+                "500":
+                    description: Internal Server error
 
     /users/{id}:
         get:
@@ -112,14 +114,11 @@ paths:
 definitions:
     User:
         type: object
-        required:
-            - name
-            - email
         properties:
             id:
                 type: integer
-                format: int64
             name:
                 type: string
             email:
                 type: string
+

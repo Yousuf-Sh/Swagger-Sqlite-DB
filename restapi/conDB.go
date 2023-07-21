@@ -15,5 +15,6 @@ func InitDB(dbPath string) {
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
+	log.Println("Database connection established successfully.")
 
 }

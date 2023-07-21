@@ -4,11 +4,12 @@ package restapi
 
 import (
 	"crypto/tls"
-	"net/http"
-
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"log"
+	"net/http"
+	"os"
 
 	"Swagger-Sqlite-DB/restapi/operations"
 	"Swagger-Sqlite-DB/restapi/operations/users"
@@ -16,7 +17,18 @@ import (
 )
 
 //go:generate swagger generate server --target ../../Swagger-Sqlite-DB --name UserAPI --spec ../swagger.yml --principal interface{}
+var logger *log.Logger
 
+func init() {
+	// Open or create the log file for writing
+	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+
+	// Create a custom logger that writes to the log file
+	logger = log.New(logFile, "", log.Ldate|log.Ltime|log.Lshortfile)
+}
 func configureFlags(api *operations.UserAPIAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
@@ -79,11 +91,23 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 func createUser(params users.CreateUserParams) middleware.Responder {
 	// Extract the user data from params
 	user := params.User
-
-	_, err := DB.Exec("INSERT INTO users (id,username,email) VALUES (?, ?, ?)", user.ID, user.Name, user.Email)
+	_, err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS usersF (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			username TEXT NOT NULL,
+			email TEXT NOT NULL
+		)
+	`)
 	if err != nil {
-		// Handle the error and return an appropriate response
-		return users.NewCreateUserBadRequest()
+		// Log the error and return an internal server error response
+		log.Printf("Error creating table: %v", err)
+		return users.NewCreateUserInternalServerError()
+	}
+
+	_, errInsert := DB.Exec("INSERT INTO usersF (username,email) VALUES (?, ?)", user.Name, user.Email)
+	if errInsert != nil {
+		logger.Printf("Error inserting user into the database: %v", errInsert) // Handle the error and return an appropriate response
+		return users.NewCreateUserInternalServerError()
 	}
 
 	// Return a success response

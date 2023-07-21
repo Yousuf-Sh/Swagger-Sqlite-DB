@@ -77,6 +77,9 @@ func init() {
           },
           "400": {
             "description": "Bad request"
+          },
+          "500": {
+            "description": "Internal Server error"
           }
         }
       }
@@ -174,17 +177,12 @@ func init() {
   "definitions": {
     "User": {
       "type": "object",
-      "required": [
-        "name",
-        "email"
-      ],
       "properties": {
         "email": {
           "type": "string"
         },
         "id": {
-          "type": "integer",
-          "format": "int64"
+          "type": "integer"
         },
         "name": {
           "type": "string"
@@ -253,6 +251,9 @@ func init() {
           },
           "400": {
             "description": "Bad request"
+          },
+          "500": {
+            "description": "Internal Server error"
           }
         }
       }
@@ -350,17 +351,12 @@ func init() {
   "definitions": {
     "User": {
       "type": "object",
-      "required": [
-        "name",
-        "email"
-      ],
       "properties": {
         "email": {
           "type": "string"
         },
         "id": {
-          "type": "integer",
-          "format": "int64"
+          "type": "integer"
         },
         "name": {
           "type": "string"

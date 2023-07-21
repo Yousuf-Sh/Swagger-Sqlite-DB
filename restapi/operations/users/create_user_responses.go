@@ -60,3 +60,28 @@ func (o *CreateUserBadRequest) WriteResponse(rw http.ResponseWriter, producer ru
 
 	rw.WriteHeader(400)
 }
+
+// CreateUserInternalServerErrorCode is the HTTP code returned for type CreateUserInternalServerError
+const CreateUserInternalServerErrorCode int = 500
+
+/*
+CreateUserInternalServerError Internal Server error
+
+swagger:response createUserInternalServerError
+*/
+type CreateUserInternalServerError struct {
+}
+
+// NewCreateUserInternalServerError creates CreateUserInternalServerError with default headers values
+func NewCreateUserInternalServerError() *CreateUserInternalServerError {
+
+	return &CreateUserInternalServerError{}
+}
+
+// WriteResponse to the client
+func (o *CreateUserInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(500)
+}
