@@ -1,0 +1,1 @@
+2023/07/21 19:27:37 configure_user_api.go:100: Error while deleting user from the database: no such table: users

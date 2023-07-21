@@ -4,11 +4,12 @@ package restapi
 
 import (
 	"crypto/tls"
-	"net/http"
-
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"log"
+	"net/http"
+	"os"
 
 	"Swagger-Sqlite-DB/restapi/operations"
 	"Swagger-Sqlite-DB/restapi/operations/users"
@@ -16,7 +17,18 @@ import (
 )
 
 //go:generate swagger generate server --target ../../Swagger-Sqlite-DB --name UserAPI --spec ../swagger.yml --principal interface{}
+var logger *log.Logger
 
+func init() {
+	// Open or create the log file for writing
+	logFile, err := os.OpenFile("Delete.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+
+	// Create a custom logger that writes to the log file
+	logger = log.New(logFile, "", log.Ldate|log.Ltime|log.Lshortfile)
+}
 func configureFlags(api *operations.UserAPIAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
@@ -85,13 +97,12 @@ func deleteUser(params users.DeleteUserParams) middleware.Responder {
 	// Example: Delete the user from the "users" table by ID
 	_, err := DB.Exec("DELETE FROM users WHERE id = ?", userID)
 	if err != nil {
-		// Handle the error and return an appropriate response
+		logger.Printf("Error while deleting user from the database: %v", err) // Handle the error and return an appropriate response
 		return users.NewDeleteUserNotFound()
 	}
 
 	// Return a success response
-	return users.
-}
+	return users.NewDeleteUserOK()
 }
 
 // The TLS configuration before HTTPS server starts.
