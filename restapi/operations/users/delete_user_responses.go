@@ -11,29 +11,29 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
-// DeleteUserNoContentCode is the HTTP code returned for type DeleteUserNoContent
-const DeleteUserNoContentCode int = 204
+// DeleteUserOKCode is the HTTP code returned for type DeleteUserOK
+const DeleteUserOKCode int = 200
 
 /*
-DeleteUserNoContent No content
+DeleteUserOK Deleted Successfully
 
-swagger:response deleteUserNoContent
+swagger:response deleteUserOK
 */
-type DeleteUserNoContent struct {
+type DeleteUserOK struct {
 }
 
-// NewDeleteUserNoContent creates DeleteUserNoContent with default headers values
-func NewDeleteUserNoContent() *DeleteUserNoContent {
+// NewDeleteUserOK creates DeleteUserOK with default headers values
+func NewDeleteUserOK() *DeleteUserOK {
 
-	return &DeleteUserNoContent{}
+	return &DeleteUserOK{}
 }
 
 // WriteResponse to the client
-func (o *DeleteUserNoContent) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *DeleteUserOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
 
-	rw.WriteHeader(204)
+	rw.WriteHeader(200)
 }
 
 // DeleteUserNotFoundCode is the HTTP code returned for type DeleteUserNotFound

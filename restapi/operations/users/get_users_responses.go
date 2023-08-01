@@ -60,3 +60,53 @@ func (o *GetUsersOK) WriteResponse(rw http.ResponseWriter, producer runtime.Prod
 		panic(err) // let the recovery middleware deal with this
 	}
 }
+
+// GetUsersBadRequestCode is the HTTP code returned for type GetUsersBadRequest
+const GetUsersBadRequestCode int = 400
+
+/*
+GetUsersBadRequest Bad Request
+
+swagger:response getUsersBadRequest
+*/
+type GetUsersBadRequest struct {
+}
+
+// NewGetUsersBadRequest creates GetUsersBadRequest with default headers values
+func NewGetUsersBadRequest() *GetUsersBadRequest {
+
+	return &GetUsersBadRequest{}
+}
+
+// WriteResponse to the client
+func (o *GetUsersBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(400)
+}
+
+// GetUsersInternalServerErrorCode is the HTTP code returned for type GetUsersInternalServerError
+const GetUsersInternalServerErrorCode int = 500
+
+/*
+GetUsersInternalServerError Internal Server Error
+
+swagger:response getUsersInternalServerError
+*/
+type GetUsersInternalServerError struct {
+}
+
+// NewGetUsersInternalServerError creates GetUsersInternalServerError with default headers values
+func NewGetUsersInternalServerError() *GetUsersInternalServerError {
+
+	return &GetUsersInternalServerError{}
+}
+
+// WriteResponse to the client
+func (o *GetUsersInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(500)
+}

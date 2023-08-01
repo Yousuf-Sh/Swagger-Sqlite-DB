@@ -28,6 +28,10 @@ paths:
                         type: array
                         items:
                             $ref: "#/definitions/User"
+                500:
+                    description: Internal Server Error
+                400:
+                    description: Bad Request
 
         post:
             summary: Create a new user
@@ -44,8 +48,8 @@ paths:
             responses:
                 "201":
                     description: Created
-                "400":
-                    description: Bad request
+                500:
+                    description: Internal Server Error
 
     /users/{id}:
         get:
@@ -106,8 +110,8 @@ paths:
                   required: true
                   type: string
             responses:
-                "204":
-                    description: No content
+                "200":
+                    description: Deleted Successfully
                 "404":
                     description: Not found
 

@@ -3,7 +3,9 @@
 package restapi
 
 import (
+	"Swagger-Sqlite-DB/models"
 	"crypto/tls"
+	"log"
 	"net/http"
 
 	"github.com/go-openapi/errors"
@@ -12,6 +14,7 @@ import (
 
 	"Swagger-Sqlite-DB/restapi/operations"
 	"Swagger-Sqlite-DB/restapi/operations/users"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -39,7 +42,12 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	InitDB("../userDB.db")
+	InitDB()
+	api.UsersCreateUserHandler = users.CreateUserHandlerFunc(createUser)
+	api.UsersUpdateUserHandler = users.UpdateUserHandlerFunc(updateUser)
+	api.UsersDeleteUserHandler = users.DeleteUserHandlerFunc(deleteUser)
+	api.UsersGetUsersHandler = users.GetUsersHandlerFunc(getUsers)
+	api.UsersGetUserByIDHandler = users.GetUserByIDHandlerFunc(getUsersByID)
 
 	if api.UsersCreateUserHandler == nil {
 		api.UsersCreateUserHandler = users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
@@ -72,6 +80,83 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.ServerShutdown = func() {}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+}
+
+func getUsersByID(params users.GetUserByIDParams) middleware.Responder {
+	userID := params.ID
+
+	row := DB.QueryRow("SELECT id, username, email FROM users where id = ?", userID)
+	var user models.User
+	err := row.Scan(&user.ID, &user.Name, &user.Email)
+	if err != nil {
+		return users.NewGetUserByIDNotFound()
+	}
+	userList := []*models.User{&user}
+	return users.NewGetUsersOK().WithPayload(userList)
+}
+func getUsers(params users.GetUsersParams) middleware.Responder {
+
+	rows, err := DB.Query("SELECT id, username, email FROM users")
+	if err != nil {
+		// Handle the error and return an appropriate response
+		log.Printf("Error creating table: %v", err)
+		return users.NewGetUsersInternalServerError()
+
+	}
+	defer rows.Close()
+
+	var userList []*models.User
+
+	for rows.Next() {
+		var user models.User // Use the correct package here
+		err := rows.Scan(&user.ID, &user.Name, &user.Email)
+		if err != nil {
+			// Handle the error and return an appropriate response
+			return users.NewGetUsersBadRequest()
+		}
+		userList = append(userList, &user)
+	}
+
+	// Return the list of users
+	return users.NewGetUsersOK().WithPayload(userList)
+}
+func createUser(params users.CreateUserParams) middleware.Responder {
+	// Extract the user data from params
+	user := params.User
+
+	_, errInsert := DB.Exec("INSERT INTO users (username,email) VALUES (?, ?)", user.Name, user.Email)
+	if errInsert != nil {
+		log.Printf("Error inserting user into the database: %v", errInsert) // Handle the error and return an appropriate response
+		return users.NewCreateUserInternalServerError()
+	}
+	// Return a success response
+	return users.NewCreateUserCreated()
+}
+func updateUser(params users.UpdateUserParams) middleware.Responder {
+	// Extract the user data from params
+	userID := params.ID
+	user := params.User
+
+	_, err := DB.Exec("UPDATE users SET username = ?, email = ? WHERE id = ?", user.Name, user.Email, userID)
+	if err != nil {
+		log.Printf("Error when updating user :%v", err)
+		return users.NewUpdateUserBadRequest()
+	} else {
+		log.Printf("Updated Correctly")
+	}
+	return users.NewUpdateUserOK()
+}
+func deleteUser(params users.DeleteUserParams) middleware.Responder {
+	// Extract the user ID from params
+	userID := params.ID
+
+	_, err := DB.Exec("DELETE FROM users WHERE id = ?", userID)
+	if err != nil {
+		log.Printf("Error while deleting user from the database: %v", err)
+		return users.NewDeleteUserNotFound()
+	}
+	// Return a success response
+	return users.NewDeleteUserOK()
 }
 
 // The TLS configuration before HTTPS server starts.

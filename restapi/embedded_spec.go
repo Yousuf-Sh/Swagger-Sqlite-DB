@@ -51,6 +51,12 @@ func init() {
                 "$ref": "#/definitions/User"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       },
@@ -75,8 +81,8 @@ func init() {
           "201": {
             "description": "Created"
           },
-          "400": {
-            "description": "Bad request"
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -164,8 +170,8 @@ func init() {
           }
         ],
         "responses": {
-          "204": {
-            "description": "No content"
+          "200": {
+            "description": "Deleted Successfully"
           },
           "404": {
             "description": "Not found"
@@ -230,6 +236,12 @@ func init() {
                 "$ref": "#/definitions/User"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       },
@@ -254,8 +266,8 @@ func init() {
           "201": {
             "description": "Created"
           },
-          "400": {
-            "description": "Bad request"
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -343,8 +355,8 @@ func init() {
           }
         ],
         "responses": {
-          "204": {
-            "description": "No content"
+          "200": {
+            "description": "Deleted Successfully"
           },
           "404": {
             "description": "Not found"
