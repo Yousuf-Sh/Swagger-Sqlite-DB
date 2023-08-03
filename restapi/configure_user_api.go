@@ -5,6 +5,7 @@ package restapi
 import (
 	"Swagger-Sqlite-DB/models"
 	"crypto/tls"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 
@@ -22,6 +23,16 @@ import (
 
 func configureFlags(api *operations.UserAPIAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
+}
+
+type User struct {
+	gorm.Model
+	Username string `gorm:"column:name"`
+	Email    string `gorm:"column:email"`
+}
+
+func (User) TableName() string {
+	return "db_users"
 }
 
 func configureAPI(api *operations.UserAPIAPI) http.Handler {
@@ -42,7 +53,10 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	InitDB()
+	_, err := InitDB()
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
 	api.UsersCreateUserHandler = users.CreateUserHandlerFunc(createUser)
 	api.UsersUpdateUserHandler = users.UpdateUserHandlerFunc(updateUser)
 	api.UsersDeleteUserHandler = users.DeleteUserHandlerFunc(deleteUser)
@@ -85,36 +99,44 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 func getUsersByID(params users.GetUserByIDParams) middleware.Responder {
 	userID := params.ID
 
-	row := DB.QueryRow("SELECT id, username, email FROM users where id = ?", userID)
-	var user models.User
-	err := row.Scan(&user.ID, &user.Name, &user.Email)
-	if err != nil {
+	var user User
+	result := DB.First(&user, userID)
+	if result.Error != nil {
+		log.Printf("Error retrieving user from the database: %v", result.Error)
 		return users.NewGetUserByIDNotFound()
 	}
-	userList := []*models.User{&user}
+
+	// Map GORM model fields to models.User fields
+	userModel := &models.User{
+		ID:    int64(user.ID),
+		Name:  &user.Username, // Use &user.Username to get a pointer to the string
+		Email: &user.Email,
+	}
+
+	// Return a single-element slice of the user
+	userList := []*models.User{userModel}
 	return users.NewGetUsersOK().WithPayload(userList)
 }
+
 func getUsers(params users.GetUsersParams) middleware.Responder {
-
-	rows, err := DB.Query("SELECT id, username, email FROM users")
-	if err != nil {
-		// Handle the error and return an appropriate response
-		log.Printf("Error creating table: %v", err)
-		return users.NewGetUsersInternalServerError()
-
-	}
-	defer rows.Close()
-
 	var userList []*models.User
 
-	for rows.Next() {
-		var user models.User // Use the correct package here
-		err := rows.Scan(&user.ID, &user.Name, &user.Email)
-		if err != nil {
-			// Handle the error and return an appropriate response
-			return users.NewGetUsersBadRequest()
+	// Retrieve all users from the database using GORM
+	var user []User
+	result := DB.Find(&user)
+	if result.Error != nil {
+		log.Printf("Error retrieving users from the database: %v", result.Error)
+		return users.NewGetUsersInternalServerError()
+	}
+
+	// Map GORM model fields to models.User fields for each user
+	for _, user := range user {
+		userModel := &models.User{
+			ID:    int64(user.ID), // Convert uint to int64
+			Name:  &user.Username, // Use &user.Username to get a pointer to the string
+			Email: &user.Email,
 		}
-		userList = append(userList, &user)
+		userList = append(userList, userModel)
 	}
 
 	// Return the list of users
@@ -123,38 +145,72 @@ func getUsers(params users.GetUsersParams) middleware.Responder {
 func createUser(params users.CreateUserParams) middleware.Responder {
 	// Extract the user data from params
 	user := params.User
+	newUser := dbUser{
+		Name:  user.Name,
+		Email: user.Email,
+	}
 
-	_, errInsert := DB.Exec("INSERT INTO users (username,email) VALUES (?, ?)", user.Name, user.Email)
-	if errInsert != nil {
-		log.Printf("Error inserting user into the database: %v", errInsert) // Handle the error and return an appropriate response
+	result := DB.Create(&newUser)
+	if result.Error != nil {
+		log.Printf("Error inserting user into the database: %v", result.Error)
 		return users.NewCreateUserInternalServerError()
 	}
+
 	// Return a success response
 	return users.NewCreateUserCreated()
 }
+
 func updateUser(params users.UpdateUserParams) middleware.Responder {
 	// Extract the user data from params
 	userID := params.ID
 	user := params.User
 
-	_, err := DB.Exec("UPDATE users SET username = ?, email = ? WHERE id = ?", user.Name, user.Email, userID)
-	if err != nil {
-		log.Printf("Error when updating user :%v", err)
+	// Find the user with the given ID
+	var existingUser User
+	result := DB.First(&existingUser, userID)
+	if result.Error != nil {
+		log.Printf("Error when finding user: %v", result.Error)
 		return users.NewUpdateUserBadRequest()
-	} else {
-		log.Printf("Updated Correctly")
 	}
+
+	// Update the user fields
+	if user.Name != nil {
+		existingUser.Username = *user.Name
+	}
+	if user.Email != nil {
+		existingUser.Email = *user.Email
+	}
+
+	// Save the updated user to the database
+	result = DB.Save(&existingUser)
+	if result.Error != nil {
+		log.Printf("Error when updating user: %v", result.Error)
+		return users.NewUpdateUserBadRequest()
+	}
+
+	log.Printf("Updated user with ID %d", userID)
 	return users.NewUpdateUserOK()
 }
+
 func deleteUser(params users.DeleteUserParams) middleware.Responder {
 	// Extract the user ID from params
 	userID := params.ID
 
-	_, err := DB.Exec("DELETE FROM users WHERE id = ?", userID)
-	if err != nil {
-		log.Printf("Error while deleting user from the database: %v", err)
+	// Find the user with the given ID
+	var user User
+	result := DB.First(&user, userID)
+	if result.Error != nil {
+		log.Printf("Error when finding user: %v", result.Error)
 		return users.NewDeleteUserNotFound()
 	}
+
+	// Delete the user from the database
+	result = DB.Delete(&user)
+	if result.Error != nil {
+		log.Printf("Error while deleting user from the database: %v", result.Error)
+		return users.NewDeleteUserNotFound()
+	}
+
 	// Return a success response
 	return users.NewDeleteUserOK()
 }
